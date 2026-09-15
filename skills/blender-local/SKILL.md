@@ -1,6 +1,6 @@
 ---
 name: blender-local
-description: Build, edit, and render native 3D scenes with the locally installed Blender at /home/yudh/bin/blender-5.2.1-linux-x64/blender. Use for scripted Blender modeling, scene generation, lighting, and rendering on this machine.
+description: Build, edit, and render native 3D scenes with the locally installed Blender at /home/yudh/bin/blender-5.2.1-linux-x64/blender. Use for scripted Blender modeling, scene generation, lighting, still renders, and camera animations on this machine.
 ---
 
 # Local Blender
@@ -28,12 +28,16 @@ Write scripts and outputs in the authorized project directory. Use `os.path.dirn
 
 Long renders can be quiet for minutes. Poll the existing process rather than starting duplicate renders; communicate progress without inventing a percentage.
 
+For video or camera tours, read [Animation and video](references/animation.md) before choosing the frame count and render settings. It covers measured performance, resumable rendering, interpolation tradeoffs, and MP4 validation.
+
 ## Lessons from this installation
 
 - **Sky API changed:** `ShaderNodeTexSky.sky_type = 'NISHITA'` raised an enum error here. Reported values were `SINGLE_SCATTERING`, `MULTIPLE_SCATTERING`, `PREETHAM`, and `HOSEK_WILKIE`. `HOSEK_WILKIE` with `sun_direction` worked. For unfamiliar properties, inspect this binary's RNA rather than assuming an older tutorial matches it.
 - **Material sockets:** this build accepted Principled BSDF inputs `Transmission Weight`, `Subsurface Weight`, `Emission Color`, and `Emission Strength`. `use_nodes = True` worked but emitted a Blender 6.0 deprecation warning; that warning did not prevent rendering.
 - **Exit status can mislead:** Blender returned exit code 0 after a Python traceback during scene construction. Read the output for tracebacks and confirm fresh artifacts before claiming completion.
 - **Thumbnail cache failure:** saving could report an OpenImageIO error under `/home/yudh/.cache/thumbnails/large/` while the project and render still saved correctly. Verify the requested files; do not expand filesystem permissions merely to repair an incidental thumbnail.
+- **Headless EEVEE:** `BLENDER_EEVEE` rendered successfully despite repeated `EGL_BAD_MATCH` messages. Check whether frames actually finish before treating those messages as fatal. Cycles device discovery reported only an Intel i5-12400 CPU in this session; recheck available devices when performance matters, and do not assume EEVEE has accelerated GPU access.
+- **Compositor API:** this build exposed `scene.compositing_node_group` and `NodeGroupOutput`; `CompositorNodeComposite` was absent. A compositor group with an Image output socket could be assigned, but the attempted denoising setup left visible noise. Verify its effect on a rendered image rather than treating accepted node creation as proof that denoising worked.
 - **Headless teardown hang:** some completed renders hung during PulseAudio cleanup (`pa_write() failed`). If this recurs in a dedicated background script, an observed workaround is `print(..., flush=True); os._exit(0)` **only after all renders and saves have succeeded**. Do not use it by default, in interactive Blender, or to hide an exception; it bypasses cleanup.
 
 ## Efficient geometry and visual checks
