@@ -1,0 +1,13 @@
+# Blender backup files
+*.blend[0-9]*
+
+# Regenerable render intermediates
+villa_video_frames/
+villa_video_clean/
+villa_video_preview_*.png
+villa_video_contact.png
+villa_v2_preview.png
+
+# Python caches
+__pycache__/
+*.py[cod]
